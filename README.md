@@ -14,4 +14,4 @@ specifying this in a config file.
   indicator applet (system tray).
   - Use [startup applications](https://help.ubuntu.com/stable/ubuntu-help/startup-applications.html.en) to add this applet to your computer startup.
 
-This applet only supports easy mounting of pre-registered cipher directories with paired mount points. For any more elaborate functionality, you can use [sirikali](https://mhogomchungu.github.io/sirikali/), or just `gocryptfs` on the command line.
+This applet only supports easy mounting of pre-registered cipher directories with paired mount points. For any more elaborate functionality, you can use [SiriKali](https://mhogomchungu.github.io/sirikali/), or just `gocryptfs` on the command line.
