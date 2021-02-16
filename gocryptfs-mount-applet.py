@@ -23,6 +23,8 @@ APPINDICATOR_ID = 'gocryptfs-mount-indicator'
 executable_path = 'gocryptfs'
 succ_string = 'Filesystem mounted and ready'
 password_incorrect_string = 'Password incorrect'
+empty_password_string = 'password is empty'
+
 # Change icon as necessary
 icon_path = Gtk.IconTheme.get_default().lookup_icon(
     'locked', 16, Gtk.IconLookupFlags.FORCE_SIZE).get_filename()
@@ -67,7 +69,9 @@ class AppIndicator:
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             if status.returncode != 0:
                 if password_incorrect_string in status.stdout:
-                    Notify.Notification.new("Incorrect password").show()
+                    Notify.Notification.new("Password incorrect").show()
+                elif empty_password_string in status.stdout:
+                    Notify.Notification.new("No password provided").show()
                 else:
                     Notify.Notification.new(
                         "gocryptfs execution failed", status.stdout).show()
