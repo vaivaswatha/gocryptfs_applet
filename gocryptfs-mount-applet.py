@@ -3,27 +3,29 @@
 # Credit to for a working starter example:
 # https://gist.github.com/jmarroyave/a24bf173092a3b0943402f6554a2094d
 
-from gi.repository import Notify
-from gi.repository import AppIndicator3
-from gi.repository import GObject
-from gi.repository import Gtk
-import os
 import gi
-import subprocess
-import signal
-import time
-from threading import Thread
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
+
+from threading import Thread
+import time
+import signal
+import subprocess
+import os
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import AppIndicator3
+from gi.repository import Notify
 
 APPINDICATOR_ID = 'gocryptfs-mount-indicator'
 executable_path = 'gocryptfs'
 succ_string = 'Filesystem mounted and ready'
 password_incorrect_string = 'Password incorrect'
 # Change icon as necessary
-icon_path = Gtk.IconTheme.get_default().lookup_icon('locked', 16, Gtk.IconLookupFlags.FORCE_SIZE).get_filename()
+icon_path = Gtk.IconTheme.get_default().lookup_icon(
+    'locked', 16, Gtk.IconLookupFlags.FORCE_SIZE).get_filename()
 
 # Provide list of [cipher_dir, mount_dir, Name], using absolute paths only.
 known_mounts = [
@@ -64,19 +66,28 @@ class AppIndicator:
                 [executable_path, "-extpass", "ssh-askpass", mount[0], mount[1]],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             if status.returncode != 0:
-                Notify.Notification.new(
-                    "Execution of gocryptfs failed:\n" + status.stdout).show()
+                if password_incorrect_string in status.stdout:
+                    Notify.Notification.new("Incorrect password").show()
+                else:
+                    Notify.Notification.new(
+                        "gocryptfs execution failed", status.stdout).show()
             else:
                 # Successful execution. Grep for the success string.
                 if succ_string in status.stdout:
-                    Notify.Notification.new(
-                        "\"" + mount[0] + "\"\nsuccessfully mounted at\n\"" + mount[1] + "\"").show()
+                    self.notif = Notify.Notification.new("gocryptfs successful",
+                                                    mount[0] + " mounted at " + mount[1])
+
+                    def open_mount_dir(notification, action_name):
+                        subprocess.call(["xdg-open", mount[1]])
+
+                    self.notif.add_action("open_mount_dir", "Open", open_mount_dir)
+                    self.notif.show()
                 else:
                     Notify.Notification.new(status.stdout).show()
         except:
             Notify.Notification.new(
-                "Error executing " + executable_path +
-                ". Ensure that it is installed and in your PATH").show()
+                "Error executing " + executable_path,
+                "Ensure that gocryptfs is installed and in your PATH").show()
             self.quit()
 
     def quit(self):
