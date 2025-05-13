@@ -29,10 +29,13 @@ empty_password_string = 'password is empty'
 icon_path = Gtk.IconTheme.get_default().lookup_icon(
     'locked', 16, Gtk.IconLookupFlags.FORCE_SIZE).get_filename()
 
-# Provide list of [cipher_dir, mount_dir, Name], using absolute paths only.
+# Provide list of [cipher_dir, mount_dir, Name, [options]], using absolute paths only.
+# Additional options provided are forwarded to gocryptfs as-is.
 known_mounts = [
-    ['cipher_dir_1', 'mount_dir_1', 'Name_1'],
-    ['cipher_dir_2', 'mount_dir_2', 'Name_2']
+    # Read-only mount cipher_ir_1 in mount_dir_1, with display name Name_1
+    ['cipher_dir_1', 'mount_dir_1', 'Name_1', ['-ro']],
+    # Mount cipher_dir_2 in mount_dir_2, with display name Name_2
+    ['cipher_dir_2', 'mount_dir_2', 'Name_2', []]
 ]
 
 class AppIndicator:
@@ -65,7 +68,7 @@ class AppIndicator:
     def on_menu_do_mount(self, item, mount):
         try:
             status = subprocess.run(
-                [executable_path, "-extpass", "ssh-askpass", mount[0], mount[1]],
+                [executable_path, "-extpass", "ssh-askpass", mount[0], mount[1]] + mount[3],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             if status.returncode != 0:
                 if password_incorrect_string in status.stdout:
